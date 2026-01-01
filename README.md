@@ -4,7 +4,7 @@
 ✔ LKR Currency  
 ✔ WhatsApp Sharing  
 ✔ Offline Support  
-✔ Free Hosting via GitHub Pages  
+✔ Hosting with Professionals 
 
 ## Install
 Open the site → Add to Home Screen
