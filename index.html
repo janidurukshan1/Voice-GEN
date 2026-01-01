@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>AiLK Invoice Generator</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#25D366">
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body{margin:0;background:#f5f7fa;font-family:system-ui}
+.container{max-width:900px;margin:auto;padding:16px}
+.header{text-align:center}
+.header img{height:48px}
+.card{background:#fff;border-radius:14px;padding:16px;margin-top:16px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+input{width:100%;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #ccc}
+.items-header,.item-row{display:grid;grid-template-columns:1fr 90px 70px 40px;gap:8px}
+button{padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer}
+.primary{background:#25D366;color:#fff}
+.secondary{background:#111827;color:#fff}
+.remove{background:#ef4444;color:#fff}
+#invoice{display:none;background:#fff;padding:24px;border-radius:12px;margin-top:20px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left}
+.total{text-align:right;font-size:1.2rem;font-weight:700;margin-top:10px}
+.footer{text-align:center;font-size:.85rem;color:#6b7280;margin-top:16px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <img src="ailk-logo.png">
+  <h2>AiLK WhatsApp Invoice App</h2>
+</div>
+
+<div class="card">
+  <label>Customer Name</label>
+  <input id="customer" placeholder="Customer name">
+
+  <div class="items-header">
+    <strong>Item</strong><strong>Price (LKR)</strong><strong>Qty</strong><strong></strong>
+  </div>
+  <div id="items"></div>
+
+  <button class="secondary" onclick="addItem()">+ Add Item</button>
+</div>
+
+<div class="card">
+  <button class="primary" onclick="generateInvoice()">Generate Invoice</button>
+  <button class="secondary" onclick="shareInvoice()">Share to WhatsApp</button>
+</div>
+
+<div id="invoice">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center">
+      <img src="ailk-logo.png" height="36">
+      <h3>Invoice</h3>
+    </div>
+    <span id="date"></span>
+  </div>
+
+  <p><b>Customer:</b> <span id="invCustomer"></span></p>
+
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr>
+    </thead>
+    <tbody id="invItems"></tbody>
+  </table>
+
+  <div class="total">Grand Total: LKR <span id="grand">0.00</span></div>
+
+  <div class="footer">Powered by AiLK Search Engine</div>
+</div>
+
+</div>
+
+<script>
+let lastFile=null;
+
+function addItem(){
+  const d=document.createElement("div");
+  d.className="item-row";
+  d.innerHTML=`
+    <input placeholder="Item">
+    <input type="number">
+    <input type="number" value="1">
+    <button class="remove" onclick="this.parentElement.remove()">✕</button>
+  `;
+  items.appendChild(d);
+}
+addItem();
+
+async function generateInvoice(){
+  invoice.style.display="block";
+  invItems.innerHTML="";
+  let total=0;
+
+  document.querySelectorAll(".item-row").forEach(r=>{
+    const i=r.querySelectorAll("input");
+    const p=parseFloat(i[1].value)||0;
+    const q=parseFloat(i[2].value)||0;
+    const t=p*q;
+    total+=t;
+    invItems.innerHTML+=`
+      <tr>
+        <td>${i[0].value}</td>
+        <td>LKR ${p.toFixed(2)}</td>
+        <td>${q}</td>
+        <td>LKR ${t.toFixed(2)}</td>
+      </tr>`;
+  });
+
+  invCustomer.innerText=customer.value;
+  grand.innerText=total.toFixed(2);
+  date.innerText=new Date().toLocaleDateString();
+
+  const canvas=await html2canvas(invoice,{scale:2});
+  const pdf=new jspdf.jsPDF();
+  pdf.addImage(canvas.toDataURL("image/png"),"PNG",0,0,210,0);
+  lastFile=new File([pdf.output("blob")],"invoice.pdf",{type:"application/pdf"});
+  pdf.save("invoice.pdf");
+}
+
+async function shareInvoice(){
+  if(!lastFile)return alert("Generate invoice first");
+  if(navigator.canShare){
+    navigator.share({files:[lastFile],title:"Invoice"});
+  }else{
+    window.open("https://wa.me/?text=Invoice%20from%20AiLK");
+  }
+}
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+</body>
+</html>
