@@ -7,12 +7,12 @@
   "theme_color": "#25D366",
   "icons": [
     {
-      "src": "ailk-logo.png",
+      "src": "logo-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "ailk-logo.png",
+      "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
